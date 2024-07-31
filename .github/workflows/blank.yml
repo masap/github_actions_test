@@ -23,11 +23,19 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v4
+      - name: Checkout sonobuoy code
+        uses: actions/checkout@v4
         with:
           fetch-depth: 5
           repository: vmware-tanzu/sonobuoy
           ref: main
+
+      - name: Build binaries and images
+        run: |
+          source ./scripts/build.sh
+          build_binaries
+          linux_containers
+          build_test_image
 
       # Runs a single command using the runners shell
       - name: Run a one-line script
