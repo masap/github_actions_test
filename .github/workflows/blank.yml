@@ -13,36 +13,29 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
   build:
-    # The type of runner that the job will run on
     runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout sonobuoy code
         uses: actions/checkout@v4
         with:
           fetch-depth: 5
           repository: vmware-tanzu/sonobuoy
           ref: main
-
       - name: Build binaries and images
         run: |
           source ./scripts/build.sh
           build_binaries
           linux_containers
           build_test_image
-
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
-
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
+      - name: Save images to tar
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          source ./scripts/build.sh
+          save_images_to_tar
+      - name: Save artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: sonobuoy-build-linux-${{ github.run_id }}
+          path: |
+            build
