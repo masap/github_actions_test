@@ -18,9 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SONOBUOY_COMMIT_HASH: 9c04b0b
-      GH_REGISTRY: "docker.io"
-      IMAGE_NAME: "masap20220915/mirrored-sonobuoy-sonobuoy"
-#     GH_REGISTRY: "ghcr.io"
+      GH_REGISTRY: "ghcr.io"
+      IMAGE_NAME: "masap/mirrored-sonobuoy-sonobuoy"
 #     IMAGE_NAME: "rancher/mirrored-sonobuoy-sonobuoy"
     steps:
       - name: Pull and publish sonobuoy images
