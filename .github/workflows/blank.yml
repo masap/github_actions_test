@@ -21,9 +21,8 @@ env:
 # SONOBUOY_IMAGE_NAME: "rancher/mirrored-sonobuoy-sonobuoy"
 
 jobs:
-  publish_sonobuoy_image_manifest:
+  pull_push_sonobuoy_image_linux:
     runs-on: ubuntu-latest
-    permissions: write-all
     steps:
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -40,6 +39,18 @@ jobs:
             docker push ${{ env.SONOBUOY_GH_REGISTRY }}/${{ env.SONOBUOY_IMAGE_NAME }}:${arch}-${{ env.SONOBUOY_MIRROR_TAG }}
           done
           docker image ls
+
+  publish_sonobuoy_image_manifest:
+    needs: [pull_push_sonobuoy_image_linux]
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Manifest create
         uses: int128/docker-manifest-create-action@v2
