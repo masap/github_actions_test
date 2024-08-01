@@ -16,9 +16,14 @@ on:
 jobs:
   publish_sonobuoy_image_manifest:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch:
+          - amd64
+          - arm64
     steps:
       - name: Pull sonobuoy images
         run: |
-          docker pull sonobuoy/sonobuoy:amd64-9c04b0b
-          docker pull sonobuoy/sonobuoy:arm64-9c04b0b
+          docker pull sonobuoy/sonobuoy:${{ matrix.arch }}-9c04b0b
+          docker pull sonobuoy/sonobuoy:${{ matrix.arch }}-9c04b0b
           docker image ls
