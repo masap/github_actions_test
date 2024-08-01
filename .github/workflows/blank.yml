@@ -16,6 +16,7 @@ on:
 jobs:
   publish_sonobuoy_image_manifest:
     runs-on: ubuntu-latest
+    permissions: write-all
     env:
       SONOBUOY_COMMIT_HASH: 9c04b0b
       GH_REGISTRY: "ghcr.io"
