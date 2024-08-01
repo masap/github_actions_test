@@ -55,11 +55,6 @@ jobs:
         with:
           name: sonobuoy-build-linux-${{ github.run_id }}
           path: build
-      - name: Download binaries and prebuilt images
-        uses: actions/download-artifact@v3
-        with:
-          name: sonobuoy-build-windows-${{ github.run_id }}
-          path: build
       - name: Load images and verify
         run: |
           docker load -i build/linux/amd64/sonobuoy-img-linux-amd64-${{ github.run_id }}.tar
