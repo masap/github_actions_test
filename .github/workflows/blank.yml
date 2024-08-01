@@ -21,7 +21,7 @@ jobs:
     steps:
       - name: Pull sonobuoy images
         run: |
-          for arch in amd64 arm64 ppc64le s390x win-amd64-ltsc2022; do
+          for arch in amd64 arm64 ppc64le s390x; do
             docker pull sonobuoy/sonobuoy:${arch}-${{ env.SONOBUOY_COMMIT_HASH }}
           done
           docker image ls
