@@ -16,14 +16,11 @@ on:
 jobs:
   publish_sonobuoy_image_manifest:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        arch:
-          - amd64
-          - arm64
+    env:
+      SONOBUOY_COMMIT_HASH: 9c04b0b
     steps:
       - name: Pull sonobuoy images
         run: |
-          docker pull sonobuoy/sonobuoy:${{ matrix.arch }}-9c04b0b
-          docker pull sonobuoy/sonobuoy:${{ matrix.arch }}-9c04b0b
+          docker pull sonobuoy/sonobuoy:amd64-${{ env.SONOBUOY_COMMIT_HASH }}
+          docker pull sonobuoy/sonobuoy:arm64-${{ env.SONOBUOY_COMMIT_HASH }}
           docker image ls
