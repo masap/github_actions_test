@@ -30,11 +30,27 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Pull and publish sonobuoy images
+      - name: Pull and push sonobuoy images
         run: |
           for arch in amd64 arm64 ppc64le s390x; do
             docker pull sonobuoy/sonobuoy:${arch}-${{ env.SONOBUOY_COMMIT_HASH }}
             docker tag sonobuoy/sonobuoy:${arch}-${{ env.SONOBUOY_COMMIT_HASH }} ${{ env.GH_REGISTRY }}/${{ env.IMAGE_NAME }}:${arch}-v0.57.1-rancher2
             docker push ${{ env.GH_REGISTRY }}/${{ env.IMAGE_NAME }}:${arch}-v0.57.1-rancher2
           done
-          docker image ls
+
+      - name: Manifest create
+        uses: int128/docker-manifest-create-action@v2
+        with:
+          tags: |
+            ${{ env.GH_REGISTRY }}/${{ env.IMAGE_NAME }}:v0.57.1-rancher2
+          sources: |
+            ${{ env.GH_REGISTRY }}/${{ env.IMAGE_NAME }}:amd64-v0.57.1-rancher2
+            ${{ env.GH_REGISTRY }}/${{ env.IMAGE_NAME }}:arm64-v0.57.1-rancher2
+            ${{ env.GH_REGISTRY }}/${{ env.IMAGE_NAME }}:ppc64le-v0.57.1-rancher2
+            ${{ env.GH_REGISTRY }}/${{ env.IMAGE_NAME }}:s390x-v0.57.1-rancher2
+
+#          docker manifest rm ${{ env.GH_REGISTRY }}/${{ env.IMAGE_NAME }}:${arch}-v0.57.1-rancher2
+#          docker manifest create masap20220915/sonobuoy:v0.57.1-rancher1 masap20220915/sonobuoy:amd64-v0.57.1-rancher1 masap20220915/sonobuoy:arm64-v0.57.1-rancher1
+#          docker manifest inspect ${{ env.GH_REGISTRY }}/${{ env.IMAGE_NAME }}:${arch}-v0.57.1-rancher2
+#          docker manifest push ${{ env.GH_REGISTRY }}/${{ env.IMAGE_NAME }}:${arch}-v0.57.1-rancher2
+#          docker image ls
