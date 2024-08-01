@@ -13,16 +13,17 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+env:
+  SONOBUOY_COMMIT_HASH: "9c04b0b"
+  SONOBUOY_MIRROR_TAG: "v0.57.1-rancher2"
+  SONOBUOY_GH_REGISTRY: "ghcr.io"
+  SONOBUOY_IMAGE_NAME: "masap/mirrored-sonobuoy-sonobuoy"
+# SONOBUOY_IMAGE_NAME: "rancher/mirrored-sonobuoy-sonobuoy"
+
 jobs:
   publish_sonobuoy_image_manifest:
     runs-on: ubuntu-latest
     permissions: write-all
-    env:
-      SONOBUOY_COMMIT_HASH: 9c04b0b
-      MIRROR_TAG: v0.57.1-rancher2
-      GH_REGISTRY: "ghcr.io"
-      IMAGE_NAME: "masap/mirrored-sonobuoy-sonobuoy"
-#     IMAGE_NAME: "rancher/mirrored-sonobuoy-sonobuoy"
     steps:
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -35,23 +36,18 @@ jobs:
         run: |
           for arch in amd64 arm64 ppc64le s390x; do
             docker pull sonobuoy/sonobuoy:${arch}-${{ env.SONOBUOY_COMMIT_HASH }}
-            docker tag sonobuoy/sonobuoy:${arch}-${{ env.SONOBUOY_COMMIT_HASH }} ${{ env.GH_REGISTRY }}/${{ env.IMAGE_NAME }}:${arch}-${{ env.MIRROR_TAG }}
-            docker push ${{ env.GH_REGISTRY }}/${{ env.IMAGE_NAME }}:${arch}-${{ env.MIRROR_TAG }}
+            docker tag sonobuoy/sonobuoy:${arch}-${{ env.SONOBUOY_COMMIT_HASH }} ${{ env.SONOBUOY_GH_REGISTRY }}/${{ env.SONOBUOY_IMAGE_NAME }}:${arch}-${{ env.SONOBUOY_MIRROR_TAG }}
+            docker push ${{ env.SONOBUOY_GH_REGISTRY }}/${{ env.SONOBUOY_IMAGE_NAME }}:${arch}-${{ env.SONOBUOY_MIRROR_TAG }}
           done
+          docker image ls
 
       - name: Manifest create
         uses: int128/docker-manifest-create-action@v2
         with:
           tags: |
-            ${{ env.GH_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.MIRROR_TAG }}
+            ${{ env.SONOBUOY_GH_REGISTRY }}/${{ env.SONOBUOY_IMAGE_NAME }}:${{ env.SONOBUOY_MIRROR_TAG }}
           sources: |
-            ${{ env.GH_REGISTRY }}/${{ env.IMAGE_NAME }}:amd64-${{ env.MIRROR_TAG }}
-            ${{ env.GH_REGISTRY }}/${{ env.IMAGE_NAME }}:arm64-${{ env.MIRROR_TAG }}
-            ${{ env.GH_REGISTRY }}/${{ env.IMAGE_NAME }}:ppc64le-${{ env.MIRROR_TAG }}
-            ${{ env.GH_REGISTRY }}/${{ env.IMAGE_NAME }}:s390x-${{ env.MIRROR_TAG }}
-
-#          docker manifest rm ${{ env.GH_REGISTRY }}/${{ env.IMAGE_NAME }}:${arch}-v0.57.1-rancher2
-#          docker manifest create masap20220915/sonobuoy:v0.57.1-rancher1 masap20220915/sonobuoy:amd64-v0.57.1-rancher1 masap20220915/sonobuoy:arm64-v0.57.1-rancher1
-#          docker manifest inspect ${{ env.GH_REGISTRY }}/${{ env.IMAGE_NAME }}:${arch}-v0.57.1-rancher2
-#          docker manifest push ${{ env.GH_REGISTRY }}/${{ env.IMAGE_NAME }}:${arch}-v0.57.1-rancher2
-#          docker image ls
+            ${{ env.SONOBUOY_GH_REGISTRY }}/${{ env.SONOBUOY_IMAGE_NAME }}:amd64-${{ env.SONOBUOY_MIRROR_TAG }}
+            ${{ env.SONOBUOY_GH_REGISTRY }}/${{ env.SONOBUOY_IMAGE_NAME }}:arm64-${{ env.SONOBUOY_MIRROR_TAG }}
+            ${{ env.SONOBUOY_GH_REGISTRY }}/${{ env.SONOBUOY_IMAGE_NAME }}:ppc64le-${{ env.SONOBUOY_MIRROR_TAG }}
+            ${{ env.SONOBUOY_GH_REGISTRY }}/${{ env.SONOBUOY_IMAGE_NAME }}:s390x-${{ env.SONOBUOY_MIRROR_TAG }}
