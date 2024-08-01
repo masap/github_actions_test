@@ -24,4 +24,8 @@ jobs:
           for arch in amd64 arm64 ppc64le s390x; do
             docker pull sonobuoy/sonobuoy:${arch}-${{ env.SONOBUOY_COMMIT_HASH }}
           done
+          for arch in amd64; do
+            docker tag sonobuoy/sonobuoy:${arch}-${{ env.SONOBUOY_COMMIT_HASH }} masap20220915/sonobuoy:${arch}-v0.57.1-rancher2
+          done
+
           docker image ls
