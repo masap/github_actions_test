@@ -41,8 +41,28 @@ jobs:
           done
           docker image ls
 
+  pull_push_sonobuoy_image_windows:
+    runs-on: windows-latest
+    permissions: write-all
+    steps:
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull and push sonobuoy images
+        run: |
+          for arch in win-amd64-ltsc2022; do
+            docker pull sonobuoy/sonobuoy:${arch}-${{ env.SONOBUOY_COMMIT_HASH }}
+            docker tag sonobuoy/sonobuoy:${arch}-${{ env.SONOBUOY_COMMIT_HASH }} ${{ env.SONOBUOY_GH_REGISTRY }}/${{ env.SONOBUOY_IMAGE_NAME }}:${arch}-${{ env.SONOBUOY_MIRROR_TAG }}
+            docker push ${{ env.SONOBUOY_GH_REGISTRY }}/${{ env.SONOBUOY_IMAGE_NAME }}:${arch}-${{ env.SONOBUOY_MIRROR_TAG }}
+          done
+          docker image ls
+
   publish_sonobuoy_image_manifest:
-    needs: [pull_push_sonobuoy_image_linux]
+    needs: [pull_push_sonobuoy_image_linux, pull_push_sonobuoy_image_windows]
     runs-on: ubuntu-latest
     permissions: write-all
     steps:
@@ -63,3 +83,4 @@ jobs:
             ${{ env.SONOBUOY_GH_REGISTRY }}/${{ env.SONOBUOY_IMAGE_NAME }}:arm64-${{ env.SONOBUOY_MIRROR_TAG }}
             ${{ env.SONOBUOY_GH_REGISTRY }}/${{ env.SONOBUOY_IMAGE_NAME }}:ppc64le-${{ env.SONOBUOY_MIRROR_TAG }}
             ${{ env.SONOBUOY_GH_REGISTRY }}/${{ env.SONOBUOY_IMAGE_NAME }}:s390x-${{ env.SONOBUOY_MIRROR_TAG }}
+            ${{ env.SONOBUOY_GH_REGISTRY }}/${{ env.SONOBUOY_IMAGE_NAME }}:win-amd64-ltsc2022-${{ env.SONOBUOY_MIRROR_TAG }}
