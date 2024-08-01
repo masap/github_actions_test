@@ -20,11 +20,14 @@ jobs:
       SONOBUOY_COMMIT_HASH: 9c04b0b
       GH_REGISTRY: "docker.io"
       IMAGE_NAME: "masap20220915/mirrored-sonobuoy-sonobuoy"
+#     GH_REGISTRY: "ghcr.io"
+#     IMAGE_NAME: "rancher/mirrored-sonobuoy-sonobuoy"
     steps:
-      - name: Pull sonobuoy images
+      - name: Pull and publish sonobuoy images
         run: |
           for arch in amd64 arm64 ppc64le s390x; do
             docker pull sonobuoy/sonobuoy:${arch}-${{ env.SONOBUOY_COMMIT_HASH }}
             docker tag sonobuoy/sonobuoy:${arch}-${{ env.SONOBUOY_COMMIT_HASH }} ${{ env.GH_REGISTRY }}/${{ env.IMAGE_NAME }}:${arch}-v0.57.1-rancher2
+            docker push ${{ env.GH_REGISTRY }}/${{ env.IMAGE_NAME }}:${arch}-v0.57.1-rancher2
           done
           docker image ls
