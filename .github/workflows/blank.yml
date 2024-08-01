@@ -54,11 +54,12 @@ jobs:
 
       - name: Pull and push sonobuoy images
         run: |
-          for arch in win-amd64-ltsc2022; do
-            docker pull sonobuoy/sonobuoy:${arch}-${{ env.SONOBUOY_COMMIT_HASH }}
-            docker tag sonobuoy/sonobuoy:${arch}-${{ env.SONOBUOY_COMMIT_HASH }} ${{ env.SONOBUOY_GH_REGISTRY }}/${{ env.SONOBUOY_IMAGE_NAME }}:${arch}-${{ env.SONOBUOY_MIRROR_TAG }}
-            docker push ${{ env.SONOBUOY_GH_REGISTRY }}/${{ env.SONOBUOY_IMAGE_NAME }}:${arch}-${{ env.SONOBUOY_MIRROR_TAG }}
-          done
+          $arch = "win-amd64-ltsc2022"
+          for ($i=0; $i -lt $arch.Length; $i++) {
+            docker pull sonobuoy/sonobuoy:$arch[$i]-${{ env.SONOBUOY_COMMIT_HASH }}
+            docker tag sonobuoy/sonobuoy:$arch[$i]-${{ env.SONOBUOY_COMMIT_HASH }} ${{ env.SONOBUOY_GH_REGISTRY }}/${{ env.SONOBUOY_IMAGE_NAME }}:$arch[$i]-${{ env.SONOBUOY_MIRROR_TAG }}
+            docker push ${{ env.SONOBUOY_GH_REGISTRY }}/${{ env.SONOBUOY_IMAGE_NAME }}:$arch[$i]-${{ env.SONOBUOY_MIRROR_TAG }}
+          }
           docker image ls
 
   publish_sonobuoy_image_manifest:
