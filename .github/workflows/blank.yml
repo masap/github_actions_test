@@ -22,6 +22,21 @@ jobs:
       IMAGE_NAME: "masap/mirrored-sonobuoy-sonobuoy"
 #     IMAGE_NAME: "rancher/mirrored-sonobuoy-sonobuoy"
     steps:
+      - name: Generate a config.json
+        run: |
+          mkdir -p "k/.docker"
+          cat << JSON > "k/.docker/config.json"
+          {
+            "auths": {
+              "ghcr.io": {
+                "username": masap,
+#               "username": "${{ github.actor }}",
+                "password": "${{ secrets.GITHUB_TOKEN }}"
+              }
+            }
+          }
+          JSON
+
       - name: Pull and publish sonobuoy images
         run: |
           for arch in amd64 arm64 ppc64le s390x; do
