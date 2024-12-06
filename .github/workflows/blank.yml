@@ -10,17 +10,16 @@ on:
   workflow_dispatch:
 
 env:
-  SONOBUOY_COMMIT_HASH: "9c04b0b"
-  SONOBUOY_MIRROR_TAG: "v0.57.1-rancher2"
-  SONOBUOY_GH_REGISTRY: "ghcr.io"
-  SONOBUOY_IMAGE_NAME: "masap/mirrored-sonobuoy-sonobuoy"
-# SONOBUOY_IMAGE_NAME: "rancher/mirrored-sonobuoy-sonobuoy"
+  GH_REGISTRY: "ghcr.io"
 
 jobs:
-  pull_push_sonobuoy_image_linux:
+  # https://docs.docker.com/build/ci/github-actions/push-multi-registries/
+  build_publish_app_frontend_image:
     runs-on: ubuntu-latest
-    permissions: write-all
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -28,56 +27,21 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Pull and push sonobuoy images
-        run: |
-          for arch in amd64 arm64 ppc64le s390x; do
-            docker pull sonobuoy/sonobuoy:${arch}-${{ env.SONOBUOY_COMMIT_HASH }}
-            docker tag sonobuoy/sonobuoy:${arch}-${{ env.SONOBUOY_COMMIT_HASH }} ${{ env.SONOBUOY_GH_REGISTRY }}/${{ env.SONOBUOY_IMAGE_NAME }}:${arch}-${{ env.SONOBUOY_MIRROR_TAG }}
-            docker push ${{ env.SONOBUOY_GH_REGISTRY }}/${{ env.SONOBUOY_IMAGE_NAME }}:${arch}-${{ env.SONOBUOY_MIRROR_TAG }}
-          done
-          docker image ls
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
-  pull_push_sonobuoy_image_windows:
-    runs-on: windows-latest
-    permissions: write-all
-    steps:
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        env:
+          IMAGE_NAME: "rancher/supportability-review-app-frontend"
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Pull and push sonobuoy images
-        run: |
-          $arch_array = @("win-amd64-ltsc2022")
-          foreach ($arch in $arch_array) {
-            docker pull sonobuoy/sonobuoy:$arch-${{ env.SONOBUOY_COMMIT_HASH }}
-            docker tag sonobuoy/sonobuoy:$arch-${{ env.SONOBUOY_COMMIT_HASH }} ${{ env.SONOBUOY_GH_REGISTRY }}/${{ env.SONOBUOY_IMAGE_NAME }}:$arch-${{ env.SONOBUOY_MIRROR_TAG }}
-            docker push ${{ env.SONOBUOY_GH_REGISTRY }}/${{ env.SONOBUOY_IMAGE_NAME }}:$arch-${{ env.SONOBUOY_MIRROR_TAG }}
-          }
-          docker image ls
-
-  publish_sonobuoy_image_manifest:
-    needs: [pull_push_sonobuoy_image_linux, pull_push_sonobuoy_image_windows]
-    runs-on: ubuntu-latest
-    permissions: write-all
-    steps:
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Manifest create
-        uses: int128/docker-manifest-create-action@v2
-        with:
+          context: ./package
+          file: ./package/Dockerfile.app-frontend
+          platforms: linux/amd64,linux/arm64
+          push: true
           tags: |
-            ${{ env.SONOBUOY_GH_REGISTRY }}/${{ env.SONOBUOY_IMAGE_NAME }}:${{ env.SONOBUOY_MIRROR_TAG }}
-          sources: |
-            ${{ env.SONOBUOY_GH_REGISTRY }}/${{ env.SONOBUOY_IMAGE_NAME }}:amd64-${{ env.SONOBUOY_MIRROR_TAG }}
-            ${{ env.SONOBUOY_GH_REGISTRY }}/${{ env.SONOBUOY_IMAGE_NAME }}:arm64-${{ env.SONOBUOY_MIRROR_TAG }}
-            ${{ env.SONOBUOY_GH_REGISTRY }}/${{ env.SONOBUOY_IMAGE_NAME }}:ppc64le-${{ env.SONOBUOY_MIRROR_TAG }}
-            ${{ env.SONOBUOY_GH_REGISTRY }}/${{ env.SONOBUOY_IMAGE_NAME }}:s390x-${{ env.SONOBUOY_MIRROR_TAG }}
-            ${{ env.SONOBUOY_GH_REGISTRY }}/${{ env.SONOBUOY_IMAGE_NAME }}:win-amd64-ltsc2022-${{ env.SONOBUOY_MIRROR_TAG }}
+            ${{ env.GH_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}
+            ${{ env.GH_REGISTRY }}/${{ env.IMAGE_NAME }}:latest
