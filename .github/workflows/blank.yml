@@ -15,6 +15,19 @@ env:
 jobs:
   # https://docs.docker.com/build/ci/github-actions/push-multi-registries/
   build_publish_app_frontend_image:
+    strategy:
+      matrix:
+        combinations:
+          - image: "rancher/supportability-review-app-frontend"
+            dockerfile: ./package/Dockerfile.app-frontend
+            platforms: |
+              linux/amd64
+              linux/arm64
+          - image: "rancher/supportability-review"
+            dockerfile: ./package/Dockerfile
+            platforms: |
+              linux/amd64
+              linux/arm64
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -35,13 +48,11 @@ jobs:
 
       - name: Build and push
         uses: docker/build-push-action@v6
-        env:
-          IMAGE_NAME: "rancher/supportability-review-app-frontend"
         with:
           context: ./package
-          file: ./package/Dockerfile.app-frontend
-          platforms: linux/amd64,linux/arm64
+          file: matrix.combinations.dockerfile
+          platforms: matrix.combinations.platforms
           push: true
           tags: |
-            ${{ env.GH_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}
-            ${{ env.GH_REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.GH_REGISTRY }}/${{ matrix.combinations.image }}:${{ github.ref_name }}
+            ${{ env.GH_REGISTRY }}/${{ matrix.combinations.image }}:latest
