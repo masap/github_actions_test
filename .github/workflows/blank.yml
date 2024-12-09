@@ -50,8 +50,8 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./package
-          file: matrix.combinations.dockerfile
-          platforms: matrix.combinations.platforms
+          file: ${{ matrix.combinations.dockerfile }}
+          platforms: ${{ matrix.combinations.platforms }}
           push: true
           tags: |
             ${{ env.GH_REGISTRY }}/${{ matrix.combinations.image }}:${{ github.ref_name }}
